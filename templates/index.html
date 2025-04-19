@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Cloud Storage</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+        input[type="file"] {
+            margin-bottom: 10px;
+        }
+        .file-list {
+            margin-top: 20px;
+            list-style: none;
+            padding: 0;
+        }
+        .file-list li {
+            margin: 5px 0;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .file-list button {
+            background: red;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Cloud Storage</h2>
+        <hr>
+        <div id="storage-bar" style="margin: 20px 0;"></div>
+        <input type="file" id="fileInput">
+        <button onclick="uploadFile()">Upload</button>
+        <hr>
+        <h3>Files & Folders</h3>
+        <ul id="fileList" class="file-list"></ul>
+    </div>
+
+    <script>
+        async function fetchFiles() {
+            const response = await fetch('/files');
+            const data = await response.json();
+            const fileList = document.getElementById('fileList');
+            fileList.innerHTML = '';
+            
+            data.files.forEach(file => {
+                const li = document.createElement('li');
+                li.innerHTML = `<span>${file}</span> <button onclick="downloadFile('${file}')">Download</button>`;
+                fileList.appendChild(li);
+            });
+        }
+        
+        async function uploadFile() {
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+            if (!file) return alert('Please select a file');
+            
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            await fetch('/upload', {
+                method: 'POST',
+                body: formData
+            });
+            
+            fetchFiles();
+        }
+        
+        function downloadFile(filename) {
+            window.location.href = `/download/${filename}`;
+        }
+        
+        fetchFiles();
+    
+        function formatBytes(bytes) {
+            const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+            if (bytes === 0) return '0 Byte';
+            const i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)));
+            return Math.round(bytes / Math.pow(1024, i), 2) + ' ' + sizes[i];
+        }
+
+        async function loadStorageInfo() {
+            const res = await fetch('/storage-info');
+            const data = await res.json();
+
+            document.getElementById('storage-bar').innerHTML = `
+            <strong>Used:</strong> ${formatBytes(data.used)} /
+            <strong>Total:</strong> ${formatBytes(data.total)}<br>
+            <progress value="${data.used}" max="${data.total}" style="width: 100%; margin-top: 10px;"></progress>
+            `;
+        }
+
+        window.onload = loadStorageInfo;
+    </script>
+</body>
+</html>
