@@ -1,116 +1,374 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simple Cloud Storage</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>KLKA DRIVE</title>
+    <link rel="apple-touch-icon" sizes="180x180" href="../static/img/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="../static/img/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="../static/img/favicon-16x16.png" />
+    <link rel="manifest" href="../static/site.webmanifest" />
+    <script defer>
+      document.addEventListener("contextmenu", (event) =>
+        event.preventDefault()
+      );
+      document.addEventListener("keydown", function (e) {
+        if (
+          e.key === "F12" ||
+          (e.ctrlKey &&
+            e.shiftKey &&
+            (e.key === "I" || e.key === "J" || e.key === "C")) ||
+          (e.ctrlKey && e.key === "U") ||
+          (e.ctrlKey && e.key === "u") ||
+          (e.ctrlKey && e.key === "s") ||
+          (e.ctrlKey && e.key === "S")
+        ) {
+          e.preventDefault();
+        }
+      });
+    </script>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            padding: 20px;
+      body {
+        font-family: Arial, sans-serif;
+        text-align: center;
+        padding: 20px;
+      }
+      .container {
+        max-width: 800px;
+        margin: auto;
+        padding: 20px;
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+      }
+      input[type="file"] {
+        margin-bottom: 10px;
+      }
+      .file-list {
+        margin-top: 20px;
+        list-style: none;
+        padding: 0;
+      }
+      .file-list li {
+        margin: 5px 0;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        text-align: left;
+        cursor: default;
+        gap: 10px;
+        flex-wrap: wrap;
+
+        .file {
+          word-break: break-word;
+          flex: 1 1 60%;
         }
-        .container {
-            max-width: 600px;
-            margin: auto;
-            padding: 20px;
-            border: 1px solid #ddd;
-            border-radius: 10px;
-            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-        }
-        input[type="file"] {
-            margin-bottom: 10px;
-        }
-        .file-list {
-            margin-top: 20px;
-            list-style: none;
-            padding: 0;
-        }
-        .file-list li {
-            margin: 5px 0;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .file-list button {
-            background: red;
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            cursor: pointer;
-        }
+      }
+      .file-list button {
+        margin-left: 10px;
+        padding: 5px 10px;
+        cursor: pointer;
+      }
+      .download-btn {
+        background: #4caf50;
+        color: white;
+        border: none;
+        padding: 5px 10px;
+        cursor: pointer;
+        min-width: 120px;
+      }
+      .delete-btn {
+        background: red;
+        color: white;
+        border: none;
+      }
+      .folder {
+        background-color: #f0f8ff;
+        cursor: pointer !important;
+      }
+      .breadcrumb {
+        display: flex;
+        flex-wrap: wrap;
+        padding: 8px 15px;
+        margin-bottom: 20px;
+        list-style: none;
+        background-color: #f5f5f5;
+        border-radius: 4px;
+      }
+      .breadcrumb a {
+        color: #337ab7;
+        text-decoration: none;
+      }
+      .breadcrumb > li + li:before {
+        padding: 0 5px;
+        color: #ccc;
+        content: "/";
+      }
+      .action-buttons {
+        margin: 20px 0;
+        display: flex;
+        /* justify-content: space-between; */
+        justify-content: center;
+      }
+      #folderName {
+        padding: 8px;
+        margin-right: 10px;
+        width: 200px;
+      }
+      .file-size {
+        color: #666;
+        font-weight: 600;
+        font-size: 0.75em;
+        text-align: right;
+        padding-right: 10px;
+      }
+
+      .folder .file-size {
+        padding-right: 20px; /* Extra space for folders without buttons */
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="container">
-        <h2>Cloud Storage</h2>
-        <hr>
-        <div id="storage-bar" style="margin: 20px 0;"></div>
-        <input type="file" id="fileInput">
-        <button onclick="uploadFile()">Upload</button>
-        <hr>
-        <h3>Files & Folders</h3>
-        <ul id="fileList" class="file-list"></ul>
+      <h2>KLKA DRIVE</h2>
+      <hr />
+      <div id="storage-bar" style="margin: 20px 0"></div>
+
+      <!-- <div class="action-buttons">
+        <div>
+          <input
+            type="file"
+            id="fileInput"
+            webkitdirectory
+            directory
+            multiple
+          />
+          <button onclick="uploadFile()">Upload</button>
+        </div>
+        <div>
+          <input type="text" id="folderName" placeholder="New folder name" />
+          <button onclick="createFolder()">Create Folder</button>
+        </div>
+      </div> -->
+
+      <hr />
+      <ul id="breadcrumb" class="breadcrumb"></ul>
+      <!-- <h3 id="current-path">Files & Folders</h3> -->
+      <ul id="fileList" class="file-list"></ul>
     </div>
 
     <script>
-        async function fetchFiles() {
-            const response = await fetch('/files');
-            const data = await response.json();
-            const fileList = document.getElementById('fileList');
-            fileList.innerHTML = '';
-            
-            data.files.forEach(file => {
-                const li = document.createElement('li');
-                li.innerHTML = `<span>${file}</span> <button onclick="downloadFile('${file}')">Download</button>`;
-                fileList.appendChild(li);
-            });
-        }
-        
-        async function uploadFile() {
-            const fileInput = document.getElementById('fileInput');
-            const file = fileInput.files[0];
-            if (!file) return alert('Please select a file');
-            
-            const formData = new FormData();
-            formData.append('file', file);
-            
-            await fetch('/upload', {
-                method: 'POST',
-                body: formData
-            });
-            
-            fetchFiles();
-        }
-        
-        function downloadFile(filename) {
-            window.location.href = `/download/${filename}`;
-        }
-        
-        fetchFiles();
-    
-        function formatBytes(bytes) {
-            const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
-            if (bytes === 0) return '0 Byte';
-            const i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)));
-            return Math.round(bytes / Math.pow(1024, i), 2) + ' ' + sizes[i];
+      let currentPath = "";
+
+      function getPathFromUrl() {
+        const params = new URLSearchParams(window.location.search);
+        const path = params.get("path");
+        return path ? decodeURIComponent(path) : "";
+      }
+
+      async function fetchFiles(path = "") {
+        currentPath = path;
+
+        // Update URL with current path
+        const newUrl = path
+          ? `${window.location.pathname}?path=${encodeURIComponent(path)}`
+          : window.location.pathname;
+        window.history.pushState({ path }, "", newUrl);
+
+        updateBreadcrumb();
+
+        const url = path ? `/files/${path}` : "/files";
+        const response = await fetch(url);
+        const data = await response.json();
+
+        if (data.error) {
+          alert(data.error);
+          return;
         }
 
-        async function loadStorageInfo() {
-            const res = await fetch('/storage-info');
-            const data = await res.json();
+        const fileList = document.getElementById("fileList");
+        fileList.innerHTML = "";
 
-            document.getElementById('storage-bar').innerHTML = `
+        // Add ".." for navigation to parent folder (except root)
+        if (path) {
+          const li = document.createElement("li");
+          li.className = "folder";
+          li.innerHTML = `<span>.. (⬅️ Back)</span>`;
+          li.onclick = () => {
+            const parentPath = path.split("/").slice(0, -1).join("/");
+            fetchFiles(parentPath);
+          };
+          fileList.appendChild(li);
+        }
+
+        data.files.forEach((item) => {
+          item.path = item.path.replace(/\\/g, "/");
+          const li = document.createElement("li");
+          if (item.is_dir) {
+            li.className = "folder";
+            li.innerHTML = `
+              <span class="file">📁 ${item.name}</span>
+              <span class="file-size">${formatBytes(item.size)}</span>
+            `;
+            li.onclick = () => fetchFiles(item.path);
+          } else {
+            // Check if it's a video file
+            const isVideo = item.name.match(/\.(mp4|mov|avi|mkv)$/i);
+            const thumbnail = item.thumbnail ? 
+                `<img src="${item.thumbnail}" class="thumbnail" alt="${item.name}">` : 
+                '📄';
+            console.log(thumbnail)
+            li.innerHTML = `
+                        <span class="file">${item.name}</span>
+                        <div>
+                            <button class="download-btn" onclick="downloadFile('${
+                              item.path
+                            }', event)">Download (${formatBytes(
+              item.size
+            )})</button>
+                            <!--<button class="delete-btn" onclick="deleteItem('${
+                              item.path
+                            }', event)">Delete</button>-->
+                        </div>
+                    `;
+          }
+          fileList.appendChild(li);
+        });
+      }
+
+      function updateBreadcrumb() {
+        const breadcrumb = document.getElementById("breadcrumb");
+        breadcrumb.innerHTML = "";
+
+        const parts = currentPath.split("/");
+        let pathSoFar = "";
+
+        // Add root link
+        const rootLi = document.createElement("li");
+        rootLi.innerHTML = `<a href="#" onclick="fetchFiles('')">Drive</a>`;
+        breadcrumb.appendChild(rootLi);
+
+        // Add path parts
+        parts.forEach((part) => {
+          if (!part) return;
+          pathSoFar = pathSoFar ? `${pathSoFar}/${part}` : part;
+          const li = document.createElement("li");
+          li.innerHTML = `<a href="#" onclick="fetchFiles('${pathSoFar}')">${part}</a>`;
+          breadcrumb.appendChild(li);
+        });
+      }
+
+      async function uploadFile() {
+        const fileInput = document.getElementById("fileInput");
+        if (!fileInput.files.length) return alert("Please select file(s)");
+
+        const formData = new FormData();
+        for (let i = 0; i < fileInput.files.length; i++) {
+          const file = fileInput.files[i];
+          // Preserve the relative path for folder uploads
+          const webkitRelativePath = file.webkitRelativePath || file.name;
+          const uploadPath = currentPath
+            ? `${currentPath}/${webkitRelativePath}`
+            : webkitRelativePath;
+          formData.append("files[]", file, uploadPath);
+        }
+
+        try {
+          const response = await fetch("/upload", {
+            method: "POST",
+            body: formData,
+          });
+          const result = await response.json();
+          if (result.error) throw new Error(result.error);
+
+          alert("Upload successful");
+          fetchFiles(currentPath);
+        } catch (error) {
+          alert(`Upload failed: ${error.message}`);
+        }
+      }
+
+      function downloadFile(path, event) {
+        event.stopPropagation();
+        const encodedPath = encodeURIComponent(path);
+        window.location.href = `/download/${encodedPath}`;
+      }
+
+      async function deleteItem(path, event) {
+        event.stopPropagation();
+        if (!confirm("Are you sure you want to delete this item?")) return;
+
+        try {
+          const response = await fetch(`/delete/${path}`, {
+            method: "DELETE",
+          });
+          const result = await response.json();
+          if (result.error) throw new Error(result.error);
+
+          fetchFiles(currentPath);
+        } catch (error) {
+          alert(`Delete failed: ${error.message}`);
+        }
+      }
+
+      async function createFolder() {
+        const folderName = document.getElementById("folderName").value.trim();
+        if (!folderName) return alert("Please enter a folder name");
+
+        try {
+          const response = await fetch("/create-folder", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              folderName: currentPath
+                ? `${currentPath}/${folderName}`
+                : folderName,
+            }),
+          });
+          const result = await response.json();
+          if (result.error) throw new Error(result.error);
+
+          document.getElementById("folderName").value = "";
+          fetchFiles(currentPath);
+        } catch (error) {
+          alert(`Create folder failed: ${error.message}`);
+        }
+      }
+
+      function formatBytes(bytes) {
+        const sizes = ["Bytes", "KB", "MB", "GB", "TB"];
+        if (bytes === 0) return "0 Byte";
+        const i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)));
+        return Math.round(bytes / Math.pow(1024, i), 2) + " " + sizes[i];
+      }
+
+      async function loadStorageInfo() {
+        const res = await fetch("/storage-info");
+        const data = await res.json();
+
+        document.getElementById("storage-bar").innerHTML = `
             <strong>Used:</strong> ${formatBytes(data.used)} /
             <strong>Total:</strong> ${formatBytes(data.total)}<br>
-            <progress value="${data.used}" max="${data.total}" style="width: 100%; margin-top: 10px;"></progress>
+            <progress value="${data.used}" max="${
+          data.total
+        }" style="width: 100%; margin-top: 10px;"></progress>
             `;
-        }
+      }
 
-        window.onload = loadStorageInfo;
+      window.onload = () => {
+        loadStorageInfo();
+        fetchFiles(getPathFromUrl());
+      };
+
+      window.addEventListener("popstate", (event) => {
+        const path = event.state?.path || "";
+        fetchFiles(path);
+      });
     </script>
-</body>
+  </body>
 </html>
