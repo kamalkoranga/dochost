@@ -1,42 +1,25 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>KLKA DRIVE</title>
-    <link rel="apple-touch-icon" sizes="180x180" href="../static/img/apple-touch-icon.png" />
-    <link rel="icon" type="image/png" sizes="32x32" href="../static/img/favicon-32x32.png" />
-    <link rel="icon" type="image/png" sizes="16x16" href="../static/img/favicon-16x16.png" />
-    <link rel="manifest" href="../static/site.webmanifest" />
-    <link rel="stylesheet" href="../static/css/style.css">
-    <script src="../static/js/index.js" defer></script>
-  </head>
-  <body>
-    <div class="container">
-      <h2>KLKA DRIVE</h2>
-      <hr />
-      <div id="storage-bar" style="margin: 20px 0"></div>
+{% extends "base.html" %}
 
-      <div class="action-buttons">
-        <div class="upload-container">
-          <input type="file" id="fileInput" multiple class="file-input" />
-          <button onclick="uploadFile()" class="upload-btn" id="uploadBtn">
-            <span id="btnText">Upload</span>
-            <span id="btnSpinner" style="display:none;">⏳ Uploading...</span>
-          </button>
-        </div>
+{% block content %}
+<div id="storage-bar" style="margin: 20px 0"></div>
 
-        <div id="toastContainer"></div>
-        
-      </div>
-      <div class="createFolder">
-        <input type="text" id="folderName" placeholder="New folder name" />
-        <button onclick="createFolder()">Create Folder</button>
-      </div>
+<div class="action-buttons">
+  <div class="upload-container">
+    <input type="file" id="fileInput" multiple class="file-input" />
+    <button onclick="uploadFile()" class="upload-btn" id="uploadBtn">
+      <span id="btnText">Upload</span>
+      <span id="btnSpinner" style="display: none">⏳ Uploading...</span>
+    </button>
+  </div>
 
-      <hr />
-      <ul id="breadcrumb" class="breadcrumb"></ul>
-      <ul id="fileList" class="file-list"></ul>
-    </div>
-  </body>
-</html>
+  <div id="toastContainer"></div>
+</div>
+<div class="createFolder">
+  <input type="text" id="folderName" placeholder="New folder name" />
+  <button onclick="createFolder()">Create Folder</button>
+</div>
+
+<hr />
+<ul id="breadcrumb" class="breadcrumb"></ul>
+<ul id="fileList" class="file-list"></ul>
+{% endblock %}
