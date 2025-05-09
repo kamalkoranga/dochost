@@ -2,3 +2,4 @@ drive/
 env
 __pycache__/
 .env
+*.db

@@ -5,19 +5,30 @@ from dotenv import load_dotenv
 from datetime import timedelta
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
+from flask_sqlalchemy import SQLAlchemy
 
 load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=1440)
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL') or 'sqlite:///' + os.path.join(os.path.dirname(__file__), 'app.db')
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db = SQLAlchemy(app)
 UPLOAD_FOLDER = os.environ.get('DRIVE_PATH')
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-users = {
-    "john": generate_password_hash("hello"),
-    "susan": generate_password_hash("bye")
-}
+
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), unique=True, nullable=False)
+    password_hash = db.Column(db.String(128), nullable=False)
+
+    def verify_password(self, password):
+        return check_password_hash(self.password_hash, password)
+
+
+with app.app_context():
+    db.create_all()
 
 # Custom login_required decorator
 def login_required(f):
@@ -51,10 +62,14 @@ def register():
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
-        if username in users:
+
+        user: User = User.query.filter_by(username=username).first()
+        if user:
             return render_template('register.html', error="Username already exists")
         
-        users[username] = generate_password_hash(password)
+        user = User(username=username, password_hash=generate_password_hash(password))
+        db.session.add(user)
+        db.session.commit()
         return redirect(url_for('login'))
 
     return render_template('register.html')
@@ -66,7 +81,9 @@ def login():
         username = request.form.get('username')
         password = request.form.get('password')
 
-        if username in users and check_password_hash(users.get(username), password):
+        user: User = User.query.filter_by(username=username).first()
+
+        if user and user.verify_password(password):
             session['username'] = username
             session.permanent = True
             return redirect(url_for('index'))
