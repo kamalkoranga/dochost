@@ -108,7 +108,7 @@ def create_folder():
         return jsonify({'error': str(e)}), 500
 
 
-'''
+
 @app.route('/delete/<path:filename>', methods=['DELETE'])
 def delete_file(filename):
     file_path = os.path.join(UPLOAD_FOLDER, filename)
@@ -120,7 +120,7 @@ def delete_file(filename):
         return jsonify({'message': 'Item deleted successfully'})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-'''
+
 
 @app.route('/storage-info', methods=['GET'])
 def storage_info():
