@@ -41,6 +41,10 @@ input[type="file"] {
   margin-left: 10px;
   padding: 5px 10px;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  justify-content: center;
 }
 .download-btn {
   background: #4caf50;
@@ -48,7 +52,6 @@ input[type="file"] {
   border: none;
   padding: 5px 10px;
   cursor: pointer;
-  min-width: 120px;
 }
 .delete-btn {
   background: red;
