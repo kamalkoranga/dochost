@@ -3,7 +3,7 @@
 {% block content %}
 <div class="user-info">
   Welcome, {{ username }}! 
-  <button class="logout-btn" onclick="window.location.href='/logout'">Logout</button>
+  <button class="logout-btn" onclick="window.location.href='{{ url_for('auth.logout') }}'">Logout</button>
 </div>
 
 <div id="storage-bar" style="margin: 20px 0"></div>
