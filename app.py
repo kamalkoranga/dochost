@@ -7,7 +7,6 @@ load_dotenv()
 
 app = Flask(__name__)
 UPLOAD_FOLDER = os.environ.get('DRIVE_PATH')
-print('UPLOAD_FOLDER: ', UPLOAD_FOLDER)
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 def get_folder_size(path):
@@ -32,8 +31,6 @@ def upload_file():
     files = request.files.getlist('files[]')
     if not files:
         return jsonify({'error': 'No selected files'}), 400
-    else:
-        print('files: ', files)
     
     for file in files:
         if file.filename == '':
@@ -94,10 +91,9 @@ def thumbnail(filename):
 def download_file(filename):
     directory = os.path.dirname(os.path.join(UPLOAD_FOLDER, filename))
     file = os.path.basename(filename)
-    print(filename, directory)
     return send_from_directory(directory, file, as_attachment=True)
 
-'''
+
 @app.route('/create-folder', methods=['POST'])
 def create_folder():
     data = request.get_json()
@@ -110,7 +106,7 @@ def create_folder():
         return jsonify({'message': 'Folder created successfully'})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-'''
+
 
 '''
 @app.route('/delete/<path:filename>', methods=['DELETE'])
