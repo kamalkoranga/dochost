@@ -46,6 +46,20 @@ def index():
     return redirect(url_for('login'))
 
 
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        if username in users:
+            return render_template('register.html', error="Username already exists")
+        
+        users[username] = generate_password_hash(password)
+        return redirect(url_for('login'))
+
+    return render_template('register.html')
+
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
