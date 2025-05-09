@@ -18,14 +18,16 @@
       <div id="storage-bar" style="margin: 20px 0"></div>
 
       <div class="action-buttons">
-        <div>
-          <input
-            type="file"
-            id="fileInput"
-            multiple
-          />
-          <button onclick="uploadFile()">Upload</button>
+        <div class="upload-container">
+          <input type="file" id="fileInput" multiple class="file-input" />
+          <button onclick="uploadFile()" class="upload-btn" id="uploadBtn">
+            <span id="btnText">Upload</span>
+            <span id="btnSpinner" style="display:none;">⏳ Uploading...</span>
+          </button>
         </div>
+
+        <div id="toastContainer"></div>
+        
         <!-- <div>
           <input type="text" id="folderName" placeholder="New folder name" />
           <button onclick="createFolder()">Create Folder</button>
@@ -34,10 +36,7 @@
 
       <hr />
       <ul id="breadcrumb" class="breadcrumb"></ul>
-      <!-- <h3 id="current-path">Files & Folders</h3> -->
       <ul id="fileList" class="file-list"></ul>
     </div>
-
-    
   </body>
 </html>
