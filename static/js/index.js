@@ -216,7 +216,7 @@ async function deleteItem(path, event) {
 
 async function createFolder() {
   const folderName = document.getElementById("folderName").value.trim();
-  if (!folderName) return alert("Please enter a folder name");
+  if (!folderName) return showToast("Please enter a folder name", "error");
 
   try {
     const response = await fetch("/create-folder", {
@@ -232,9 +232,10 @@ async function createFolder() {
     if (result.error) throw new Error(result.error);
 
     document.getElementById("folderName").value = "";
+    showToast(result.message || "Folder created successfully!");
     fetchFiles(currentPath);
   } catch (error) {
-    alert(`Create folder failed: ${error.message}`);
+    showToast(`Create folder failed: ${error.message}`, "error");
   }
 }
 
@@ -258,10 +259,11 @@ async function loadStorageInfo() {
             `;
 }
 
-window.onload = () => {
+if (window.location.pathname === "/") {
   loadStorageInfo();
   fetchFiles(getPathFromUrl());
-};
+}
+
 
 window.addEventListener("popstate", (event) => {
   const path = event.state?.path || "";
