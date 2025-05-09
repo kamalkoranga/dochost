@@ -1,10 +1,13 @@
 from flask import Flask, render_template, request, jsonify, send_from_directory
 import os
 import shutil
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = Flask(__name__)
-# UPLOAD_FOLDER = 'drive'
-UPLOAD_FOLDER = r"C:\Users\KLKA\Videos\Videos"
+UPLOAD_FOLDER = os.environ.get('DRIVE_PATH')
+print('UPLOAD_FOLDER: ', UPLOAD_FOLDER)
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 def get_folder_size(path):
@@ -20,30 +23,32 @@ def get_folder_size(path):
 def index():
     return render_template('index.html')
 
-'''
+
 @app.route('/upload', methods=['POST'])
 def upload_file():
-    if 'file' not in request.files:
-        files = request.files.getlist('file')
-        if not files:
-            return jsonify({'error': 'No file part'}), 400
+    if 'files[]' not in request.files:
+        return jsonify({'error': 'No file part'}), 400
     
-    if 'file[]' in request.files:
-        files = request.files.getlist('file[]')
-        for file in files:
-            if file.filename == '':
-                continue
-            filepath = os.path.join(UPLOAD_FOLDER, file.filename)
-            os.makedirs(os.path.dirname(filepath), exist_ok=True)
-            file.save(filepath)
-        return jsonify({'message': 'Files uploaded successfully'})
+    files = request.files.getlist('files[]')
+    if not files:
+        return jsonify({'error': 'No selected files'}), 400
     else:
-        file = request.files['file']
+        print('files: ', files)
+    
+    for file in files:
         if file.filename == '':
-            return jsonify({'error': 'No selected file'}), 400
-        file.save(os.path.join(UPLOAD_FOLDER, file.filename))
-        return jsonify({'message': 'File uploaded successfully', 'filename': file.filename})
-'''
+            continue
+            
+        # Get the upload path from the form data
+        upload_path = request.form.get(f'{file.filename}_path', file.filename)
+        filepath = os.path.join(UPLOAD_FOLDER, upload_path)
+        
+        # Create directories if they don't exist
+        os.makedirs(os.path.dirname(filepath), exist_ok=True)
+        file.save(filepath)
+    
+    return jsonify({'message': 'Files uploaded successfully'})
+
 
 @app.route('/files', methods=['GET'])
 @app.route('/files/<path:subpath>', methods=['GET'])
@@ -131,4 +136,4 @@ def storage_info():
     })
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, host="0.0.0.0")

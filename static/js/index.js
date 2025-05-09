@@ -117,9 +117,38 @@ function updateBreadcrumb() {
   });
 }
 
+// Toast notification system
+function showToast(message, type = "success") {
+  const toast = document.createElement("div");
+  toast.className = `toast ${type}`;
+  toast.textContent = message;
+  document.getElementById("toastContainer").appendChild(toast);
+
+  // Show toast
+  setTimeout(() => toast.classList.add("show"), 10);
+
+  // Auto-remove after 5 seconds
+  setTimeout(() => {
+    toast.classList.remove("show");
+    setTimeout(() => toast.remove(), 300);
+  }, 5000);
+}
+
 async function uploadFile() {
   const fileInput = document.getElementById("fileInput");
-  if (!fileInput.files.length) return alert("Please select file(s)");
+  const uploadBtn = document.getElementById("uploadBtn");
+  const btnText = document.getElementById("btnText");
+  const btnSpinner = document.getElementById("btnSpinner");
+
+  if (!fileInput.files.length) {
+    showToast("Please select file(s) first", "error");
+    return;
+  }
+
+  // UI Loading state
+  uploadBtn.disabled = true;
+  btnText.style.display = "none";
+  btnSpinner.style.display = "inline";
 
   const formData = new FormData();
   for (let i = 0; i < fileInput.files.length; i++) {
@@ -146,11 +175,16 @@ async function uploadFile() {
     }
 
     const result = await response.json();
-    alert(result.message || "Upload successful");
+    showToast(result.message || "Files uploaded successfully!");
     fileInput.value = "";
     fetchFiles(currentPath);
   } catch (error) {
-    alert(`Upload failed: ${error.message}`);
+    showToast(`Upload failed: ${error.message}`, "error");
+  } finally {
+    // Reset UI
+    uploadBtn.disabled = false;
+    btnText.style.display = "inline";
+    btnSpinner.style.display = "none";
   }
 }
 
