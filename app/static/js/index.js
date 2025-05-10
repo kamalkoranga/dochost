@@ -42,7 +42,8 @@ async function fetchFiles(path = "") {
   const data = await response.json();
 
   if (data.error) {
-    alert(data.error);
+    window.location.href = "/";
+    // alert(data.error);
     return;
   }
 

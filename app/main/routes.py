@@ -6,7 +6,7 @@ import os
 from app import db
 import shutil
 from app.main import bp
-from app.utils import get_folder_size, get_user_upload_folder
+from app.utils import get_folder_size, get_user_upload_folder, create_user_folder
 
 
 @bp.before_app_request
@@ -54,6 +54,7 @@ def list_files(subpath=''):
     USER_FOLDER = get_user_upload_folder(current_user.username)
     target_folder = os.path.join(USER_FOLDER, subpath)
     if not os.path.exists(target_folder):
+        create_user_folder(target_folder)
         return jsonify({'error': 'Path not found'}), 404
     
     items = []
