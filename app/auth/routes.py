@@ -1,9 +1,11 @@
-from flask import render_template, redirect, url_for, request
+from flask import render_template, redirect, url_for, request, current_app
 from flask_login import login_user, logout_user, current_user
 import sqlalchemy as sa
 from app import db
 from app.auth import bp
 from app.models import User
+from app.utils import create_user_folder
+import os
 
 
 @bp.route('/login', methods=['GET', 'POST'])
@@ -46,11 +48,15 @@ def register():
         user: User = User.query.filter_by(username=username).first()
         if user:
             return render_template('register.html', error="Username already exists")
-        
-        user = User(username=username)
-        user.set_password(password)
-        db.session.add(user)
+
+  
+        new_user = User(username=username)
+        new_user.set_password(password)
+        db.session.add(new_user)
         db.session.commit()
+
+        folder_path = os.path.join(current_app.config['UPLOAD_FOLDER'], new_user.folder_name)
+        create_user_folder(folder_path)
         return redirect(url_for('auth.login'))
 
     return render_template('register.html')
