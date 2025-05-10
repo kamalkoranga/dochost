@@ -6,7 +6,7 @@ import os
 from app import db
 import shutil
 from app.main import bp
-from app.utils import get_folder_size
+from app.utils import get_folder_size, get_user_upload_folder
 
 
 @bp.before_app_request
@@ -24,6 +24,8 @@ def index():
 @bp.route('/upload', methods=['POST'])
 @login_required
 def upload_file():
+    USER_FOLDER = get_user_upload_folder(current_user.username)
+
     if 'files[]' not in request.files:
         return jsonify({'error': 'No file part'}), 400
     
@@ -37,8 +39,7 @@ def upload_file():
             
         # Get the upload path from the form data
         upload_path = request.form.get(f'{file.filename}_path', file.filename)
-        filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], upload_path)
-        print(current_app.config['UPLOAD_FOLDER'])
+        filepath = os.path.join(USER_FOLDER, upload_path)
         
         # Create directories if they don't exist
         os.makedirs(os.path.dirname(filepath), exist_ok=True)
@@ -50,7 +51,8 @@ def upload_file():
 @bp.route('/files/<path:subpath>', methods=['GET'])
 @login_required
 def list_files(subpath=''):
-    target_folder = os.path.join(current_app.config['UPLOAD_FOLDER'], subpath)
+    USER_FOLDER = get_user_upload_folder(current_user.username)
+    target_folder = os.path.join(USER_FOLDER, subpath)
     if not os.path.exists(target_folder):
         return jsonify({'error': 'Path not found'}), 404
     
@@ -85,7 +87,8 @@ def list_files(subpath=''):
 @bp.route('/download/<path:filename>', methods=['GET'])
 @login_required
 def download_file(filename):
-    directory = os.path.dirname(os.path.join(current_app.config['UPLOAD_FOLDER'], filename))
+    USER_FOLDER = get_user_upload_folder(current_user.username)
+    directory = os.path.dirname(os.path.join(USER_FOLDER, filename))
     file = os.path.basename(filename)
     return send_from_directory(directory, file, as_attachment=True)
 
@@ -93,11 +96,13 @@ def download_file(filename):
 @bp.route('/create-folder', methods=['POST'])
 @login_required
 def create_folder():
+    USER_FOLDER = get_user_upload_folder(current_user.username)
+
     data = request.get_json()
     if not data or 'folderName' not in data:
         return jsonify({'error': 'No folder name provided'}), 400
     
-    folder_path = os.path.join(current_app.config['UPLOAD_FOLDER'], data['folderName'])
+    folder_path = os.path.join(USER_FOLDER, data['folderName'])
     try:
         os.makedirs(folder_path, exist_ok=True)
         return jsonify({'message': 'Folder created successfully'})
@@ -108,7 +113,8 @@ def create_folder():
 @bp.route('/delete/<path:filename>', methods=['DELETE'])
 @login_required
 def delete_file(filename):
-    file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
+    UPLOAD_FOLDER = get_user_upload_folder(current_user.username)
+    file_path = os.path.join(UPLOAD_FOLDER, filename)
     try:
         if os.path.isdir(file_path):
             shutil.rmtree(file_path)
@@ -122,7 +128,7 @@ def delete_file(filename):
 @bp.route('/storage-info', methods=['GET'])
 @login_required
 def storage_info():
-    total, used, free = shutil.disk_usage("drive")  # or just "/"
+    total, used, free = shutil.disk_usage(current_app.config['UPLOAD_FOLDER'])  # or just "/"
     return jsonify({
         'total': total,
         'used': used,
