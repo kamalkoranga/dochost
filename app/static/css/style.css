@@ -254,3 +254,27 @@ body {
     cursor: pointer;
   }
 }
+
+/* Custom Menu */
+.context-menu {
+  display: none;
+  position: absolute;
+  z-index: 1000;
+  background-color: white;
+  border: 1px solid #ccc;
+  box-shadow: 2px 2px 8px #aaa;
+
+  
+  .menuItem {
+    width: 100%;
+    border: none;
+    background: none;
+    padding: 8px;
+    text-align: left;
+    cursor: pointer;
+    
+    &:hover {
+      background-color: #f0f0f0;
+    }
+  }
+}

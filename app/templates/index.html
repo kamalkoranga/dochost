@@ -1,6 +1,14 @@
 {% extends "base.html" %}
 
 {% block content %}
+
+<!-- Custom context menu for folders -->
+<div id="folderContextMenu" class="context-menu">
+  <button id="renameFolderBtn" class="menuItem">🗑️ Rename Folder</button>
+  <button id="deleteFolderBtn" class="menuItem">🗑️ Delete Folder</button>
+</div>
+
+
 <div class="user-info">
   Welcome, {{ username }}! 
   <button class="logout-btn" onclick="window.location.href='{{ url_for('auth.logout') }}'">Logout</button>
