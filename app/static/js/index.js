@@ -67,6 +67,7 @@ async function fetchFiles(path = "") {
     const li = document.createElement("li");
     if (item.is_dir) {
       li.className = "folder";
+      li.setAttribute("data-path", item.path);
       li.innerHTML = `
               <span class="file">📁 ${item.name}</span>
               <span class="file-size">${formatBytes(item.size)}</span>
@@ -270,3 +271,47 @@ window.addEventListener("popstate", (event) => {
   const path = event.state?.path || "";
   fetchFiles(path);
 });
+
+
+function customContextMenu() {
+
+  let folderContextMenu = document.getElementById("folderContextMenu");
+  let deleteFolderBtn = document.getElementById("deleteFolderBtn");
+  let rightClickedFolderPath = null;
+  
+  // Delegate right-click event for folders
+  document.getElementById("fileList").addEventListener("contextmenu", function(e) {
+    const folderLi = e.target.closest(".folder");
+    if (folderLi) {
+      e.preventDefault();
+      // Find the folder's path from the data
+      const folderName = folderLi.querySelector(".file")?.textContent.replace(/^📁\s*/, "") || "";
+      // Find the folder's path from the loaded data
+      const folderItem = Array.from(folderLi.parentNode.children).indexOf(folderLi);
+      // Get the path from the data attribute if you add it, or reconstruct from currentPath and folderName
+      rightClickedFolderPath = folderLi.dataset.path || (currentPath ? `${currentPath}/${folderName}` : folderName);
+  
+      // Show context menu at mouse position
+      folderContextMenu.style.top = `${e.pageY}px`;
+      folderContextMenu.style.left = `${e.pageX}px`;
+      folderContextMenu.style.display = "block";
+    } else {
+      folderContextMenu.style.display = "none";
+    }
+  });
+  
+  // Hide menu on click elsewhere
+  document.addEventListener("click", function() {
+    folderContextMenu.style.display = "none";
+  });
+  
+  // Delete folder on menu click
+  deleteFolderBtn.addEventListener("click", function() {
+    folderContextMenu.style.display = "none";
+    if (rightClickedFolderPath) {
+      deleteItem(rightClickedFolderPath, { stopPropagation: () => {} });
+    }
+  });
+}
+
+customContextMenu()

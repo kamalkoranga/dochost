@@ -45,7 +45,7 @@ def upload_file():
         os.makedirs(os.path.dirname(filepath), exist_ok=True)
         file.save(filepath)
     
-    return jsonify({'message': 'Files uploaded successfully'})
+    return jsonify({'message': 'File uploaded successfully'})
 
 @bp.route('/files', methods=['GET'])
 @bp.route('/files/<path:subpath>', methods=['GET'])
@@ -119,9 +119,10 @@ def delete_file(filename):
     try:
         if os.path.isdir(file_path):
             shutil.rmtree(file_path)
+            return jsonify({'message': 'Folder deleted successfully'})
         else:
             os.remove(file_path)
-        return jsonify({'message': 'Item deleted successfully'})
+            return jsonify({'message': 'File deleted successfully'})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
