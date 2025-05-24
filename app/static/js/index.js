@@ -183,6 +183,7 @@ async function uploadFile() {
     showToast(result.message || "Files uploaded successfully!");
     fileInput.value = "";
     fetchFiles(currentPath);
+    loadStorageInfo();
   } catch (error) {
     showToast(`Upload failed: ${error.message}`, "error");
   } finally {
@@ -211,6 +212,7 @@ async function deleteItem(path, event) {
     if (result.error) throw new Error(result.error);
     showToast(result.message || "Item deleted successfully!");
     fetchFiles(currentPath);
+    loadStorageInfo();
   } catch (error) {
     showToast(`Delete failed: ${error.message}`, "error");
   } 
