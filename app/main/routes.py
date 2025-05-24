@@ -130,9 +130,12 @@ def delete_file(filename):
 @bp.route('/storage-info', methods=['GET'])
 @login_required
 def storage_info():
-    total, used, free = shutil.disk_usage(current_app.config['UPLOAD_FOLDER'])  # or just "/"
+    _, used_system, _ = shutil.disk_usage("/")
+    total, _, _ = shutil.disk_usage(current_app.config['UPLOAD_FOLDER'])
+    total -= used_system
+    used = get_folder_size(get_user_upload_folder(current_user.username))
     return jsonify({
-        'total': total,
+        'total': total - used_system,
         'used': used,
-        'free': free
+        'free': total - used
     })
