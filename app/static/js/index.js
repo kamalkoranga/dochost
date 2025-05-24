@@ -182,6 +182,7 @@ async function uploadFile() {
     const result = await response.json();
     showToast(result.message || "Files uploaded successfully!");
     fileInput.value = "";
+    updateSelectedFilesList();
     fetchFiles(currentPath);
     loadStorageInfo();
   } catch (error) {
@@ -317,3 +318,40 @@ function customContextMenu() {
 }
 
 customContextMenu()
+
+const uploadDropArea = document.getElementById("uploadDropArea");
+const fileInput = document.getElementById("fileInput");
+const selectedFilesList = document.getElementById("selectedFilesList");
+
+// Drag & drop events
+["dragenter", "dragover"].forEach(eventName => {
+  uploadDropArea.addEventListener(eventName, (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    uploadDropArea.classList.add("dragover");
+  });
+});
+["dragleave", "drop"].forEach(eventName => {
+  uploadDropArea.addEventListener(eventName, (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    uploadDropArea.classList.remove("dragover");
+  });
+});
+uploadDropArea.addEventListener("drop", (e) => {
+  fileInput.files = e.dataTransfer.files;
+  updateSelectedFilesList();
+});
+
+// Update file list preview
+fileInput.addEventListener("change", updateSelectedFilesList);
+
+function updateSelectedFilesList() {
+  selectedFilesList.innerHTML = "";
+  for (let i = 0; i < fileInput.files.length; i++) {
+    const file = fileInput.files[i];
+    const li = document.createElement("li");
+    li.textContent = file.name;
+    selectedFilesList.appendChild(li);
+  }
+}
