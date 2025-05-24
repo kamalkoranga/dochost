@@ -317,34 +317,36 @@ function customContextMenu() {
   });
 }
 
-customContextMenu()
-
-const uploadDropArea = document.getElementById("uploadDropArea");
-const fileInput = document.getElementById("fileInput");
-const selectedFilesList = document.getElementById("selectedFilesList");
-
-// Drag & drop events
-["dragenter", "dragover"].forEach(eventName => {
-  uploadDropArea.addEventListener(eventName, (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    uploadDropArea.classList.add("dragover");
+if (window.location.pathname === "/") {
+  customContextMenu()
+  const uploadDropArea = document.getElementById("uploadDropArea");
+  const fileInput = document.getElementById("fileInput");
+  const selectedFilesList = document.getElementById("selectedFilesList");
+  
+  // Drag & drop events
+  ["dragenter", "dragover"].forEach(eventName => {
+    uploadDropArea.addEventListener(eventName, (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      uploadDropArea.classList.add("dragover");
+    });
   });
-});
-["dragleave", "drop"].forEach(eventName => {
-  uploadDropArea.addEventListener(eventName, (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    uploadDropArea.classList.remove("dragover");
+  ["dragleave", "drop"].forEach(eventName => {
+    uploadDropArea.addEventListener(eventName, (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      uploadDropArea.classList.remove("dragover");
+    });
   });
-});
-uploadDropArea.addEventListener("drop", (e) => {
-  fileInput.files = e.dataTransfer.files;
-  updateSelectedFilesList();
-});
+  uploadDropArea.addEventListener("drop", (e) => {
+    fileInput.files = e.dataTransfer.files;
+    updateSelectedFilesList();
+  });
+  
+  // Update file list preview
+  fileInput.addEventListener("change", updateSelectedFilesList);
+}
 
-// Update file list preview
-fileInput.addEventListener("change", updateSelectedFilesList);
 
 function updateSelectedFilesList() {
   selectedFilesList.innerHTML = "";
