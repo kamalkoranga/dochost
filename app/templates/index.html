@@ -16,14 +16,20 @@
 <div id="storage-bar" style="margin: 20px 0"></div>
 
 <div class="action-buttons">
-  <div class="upload-container">
-    <input type="file" id="fileInput" multiple class="file-input" />
-    <button onclick="uploadFile()" class="upload-btn" id="uploadBtn">
+  <div class="upload-container-modern" id="uploadDropArea">
+    <input type="file" id="fileInput" multiple class="file-input" style="display: none;" />
+    <div class="upload-icon">📤</div>
+    <div class="upload-text">
+      <span>Drag & drop files here</span>
+      <span>or</span>
+      <label for="fileInput" class="custom-file-label-modern">Browse Files</label>
+    </div>
+    <ul id="selectedFilesList" class="selected-files-list"></ul>
+    <button onclick="uploadFile()" class="upload-btn-modern" id="uploadBtn">
       <span id="btnText">Upload</span>
       <span id="btnSpinner" style="display: none">⏳ Uploading...</span>
     </button>
   </div>
-
   <div id="toastContainer"></div>
 </div>
 <div class="createFolder">
