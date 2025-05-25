@@ -1,0 +1,32 @@
+services:
+  web:
+    container_name: klkadrive_web
+    build: .
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_APP=klkadrive.py
+      - DATABASE_URL=postgresql://postgres:password@db:5432/flaskdb
+    depends_on:
+      - db
+    volumes:
+    # Uses the users_drives_data volume to store user drives
+      # - users_drives_data:/app/users_drives
+    #  Uses local directory as a folder
+      - ./users_drives:/app/users_drives
+
+  
+  db:
+    container_name: klkadrive_db
+    image: postgres:17
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: flaskdb
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+
+volumes:
+  pgdata:
+  users_drives_data:
