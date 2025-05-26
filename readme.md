@@ -1,4 +1,8 @@
 # KLKA Drive - PBL Project
 
-### Run this command when u want to make ur site online
-- cloudflared tunnel run my-drive
+## Cloud Services used:
+
+- Docker and DockerHub
+- Cloudflare Tunnel
+- Deployed in render
+- Login + Oauth By google
