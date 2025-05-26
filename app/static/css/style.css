@@ -288,7 +288,38 @@ body {
       background-color: #0056b3;
     }
   }
+
+  .or {
+    margin-top: 1em;
+    text-align: center;
+  }
+  
+  /* OAuth */
+  
+  .oauth-login {
+    margin-top: 1em;
+  
+    button {
+      background-color: #f0f0f0;
+      border: 1px solid #ccc;
+      color: #333;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+  
+      &:hover {
+        background-color: #e0e0e0;
+      }
+    
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 0.5em;
+    }
+  }
 }
+
 
 
 .user-info {
