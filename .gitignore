@@ -5,3 +5,4 @@ __pycache__/
 *.db
 users_drives/
 Todo.md
+postgres_data/

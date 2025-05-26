@@ -3,3 +3,5 @@ __pycache__/
 *.db
 users_drives/
 .env
+postgres_data/
+Todo.md
