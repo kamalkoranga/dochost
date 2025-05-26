@@ -9,6 +9,7 @@ db = SQLAlchemy()
 migrate = Migrate()
 login = LoginManager()
 login.login_view = 'auth.login'
+# make a flask or use js to view this msg
 login.login_message = 'Please log in to access this page.'
 
 
