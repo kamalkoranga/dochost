@@ -16,4 +16,6 @@ EXPOSE 5000
 
 LABEL org.opencontainers.image.source=https://github.com/kamalkoranga/klka-drive
 
+LABEL org.opencontainers.image.description="Removed .env file for security reasons. Please create a .env file in the root directory of the project with the required environment variables."
+
 ENTRYPOINT ["/entrypoint.sh"]
