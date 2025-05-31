@@ -41,3 +41,26 @@ jobs:
       # Optional: logout
       - name: Logout from GHCR
         run: docker logout ghcr.io
+  
+  deploys:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Set up gcloud CLI and authenticate
+        uses: google-github-actions/setup-gcloud@v1
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
+          export_default_credentials: true
+
+      - name: SSH and deploy to VM
+        run: |
+          gcloud compute ssh ${{ secrets.GCP_VM_USER }}@${{ secrets.GCP_VM_NAME }} --zone=${{ secrets.GCP_VM_ZONE }} --command="
+            cd cloud_pbl &&
+            docker compose down &&
+            docker rmi ghcr.io/kamalkoranga/klka-drive:latest &&
+            docker compose up -d
+          "
+
+      - name: Logout from gcloud
+        run: gcloud auth revoke --all
