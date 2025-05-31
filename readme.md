@@ -4,5 +4,7 @@
 
 - Docker and DockerHub
 - Cloudflare Tunnel
-- Deployed in render
 - Login + Oauth By google
+- Deployed in Google Cloud Platform (GCP)
+    - using Google Compute Engine (VM)
+    - Live URL -> [DocHost](https://dochost.klka.me)
