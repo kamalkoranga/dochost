@@ -1,0 +1,43 @@
+name: Build and Push Image to GHCR
+
+on:
+  push:
+    branches: [main]
+
+env:
+  USERNAME: ${{ github.actor }}
+  REPO: klka-drive
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set version from date
+        run: echo "VERSION=$(date +%Y%m%d-%H%M%S)" >> $GITHUB_ENV
+
+      - name: Log in to GitHub Container Registry
+        run: echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Build Docker image
+        run: |
+          docker build \
+            -t ghcr.io/${{ env.USERNAME }}/${{ env.REPO }}:${{ env.VERSION }} \
+            -t ghcr.io/${{ env.USERNAME }}/${{ env.REPO }}:latest \
+            .
+
+      - name: Push Docker image
+        run: |
+          docker push ghcr.io/${{ env.USERNAME }}/${{ env.REPO }}:${{ env.VERSION }}
+          docker push ghcr.io/${{ env.USERNAME }}/${{ env.REPO }}:latest
+
+      # Optional: logout
+      - name: Logout from GHCR
+        run: docker logout ghcr.io
