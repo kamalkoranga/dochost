@@ -42,35 +42,35 @@ jobs:
       - name: Logout from GHCR
         run: docker logout ghcr.io
   
-  # deploys:
-  #   needs: build-and-push
-  #   runs-on: ubuntu-latest
+  deploys:
+    needs: build-and-push
+    runs-on: ubuntu-latest
 
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v4
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-  #     - name: Authenticate to Google Cloud
-  #       uses: google-github-actions/auth@v1
-  #       with:
-  #         credentials_json: ${{ secrets.GCP_SA_KEY }}
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
         
-  #     - name: Set up Cloud SDK
-  #       uses: google-github-actions/setup-gcloud@v1
-  #       with:
-  #         project_id: ${{ secrets.GCP_PROJECT_ID }}
-  #         install_components: 'beta'
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v1
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          install_components: 'beta'
 
-  #     - name: SSH and deploy to VM
-  #       run: |
-  #         gcloud compute ssh ${{ secrets.GCP_VM_USER }}@${{ secrets.GCP_VM_NAME }} \
-  #         --zone=${{ secrets.GCP_VM_ZONE }} \
-  #         --command="
-  #           cd cloud_pbl &&
-  #           docker compose down &&
-  #           docker rmi ghcr.io/kamalkoranga/dochost:latest || true &&
-  #           docker compose up -d
-  #         "
+      - name: SSH and deploy to VM
+        run: |
+          gcloud compute ssh ${{ secrets.GCP_VM_USER }}@${{ secrets.GCP_VM_NAME }} \
+          --zone=${{ secrets.GCP_VM_ZONE }} \
+          --command="
+            cd cloud_pbl &&
+            docker compose down &&
+            docker rmi ghcr.io/kamalkoranga/dochost:latest || true &&
+            docker compose up -d
+          "
 
-  #     - name: Logout from gcloud
-  #       run: gcloud auth revoke --all
+      - name: Logout from gcloud
+        run: gcloud auth revoke --all
