@@ -1,6 +1,6 @@
 services:
   web:
-    container_name: klkadrive_web
+    container_name: dochost_web
     build: .
     ports:
       - "5000:5000"
@@ -14,7 +14,7 @@ services:
       - ${DRIVE_PATH}:/app/users_drives
 
   db:
-    container_name: klkadrive_db
+    container_name: dochost_db
     image: postgres:17
     environment:
       POSTGRES_USER: ${POSTGRES_USER}

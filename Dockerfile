@@ -14,8 +14,8 @@ RUN chmod +x /entrypoint.sh
 
 EXPOSE 5000
 
-LABEL org.opencontainers.image.source=https://github.com/kamalkoranga/klka-drive
+LABEL org.opencontainers.image.source=https://github.com/kamalkoranga/dochost
 
-LABEL org.opencontainers.image.description="Updated docker-compose and fixed path bugs in klka-drive"
+LABEL org.opencontainers.image.description="Changed name from klka-drive to dochost"
 
 ENTRYPOINT ["/entrypoint.sh"]
