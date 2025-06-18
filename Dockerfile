@@ -16,6 +16,6 @@ EXPOSE 5000
 
 LABEL org.opencontainers.image.source=https://github.com/kamalkoranga/dochost
 
-LABEL org.opencontainers.image.description="Changed name from klka-drive to dochost"
+LABEL org.opencontainers.image.description="Allocated 5MB to each user for file uploads."
 
 ENTRYPOINT ["/entrypoint.sh"]
