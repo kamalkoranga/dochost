@@ -25,6 +25,7 @@ def index():
 @login_required
 def upload_file():
     USER_FOLDER = get_user_upload_folder(current_user.username)
+    MAX_USER_STORAGE = 5 * 1024 * 1024  # 5MB
 
     if 'files[]' not in request.files:
         return jsonify({'error': 'No file part'}), 400
@@ -32,6 +33,18 @@ def upload_file():
     files = request.files.getlist('files[]')
     if not files:
         return jsonify({'error': 'No selected files'}), 400
+    
+    # Calculate current usage
+    current_usage = get_folder_size(USER_FOLDER)
+    # Calculate total size of new files
+    new_files_total = sum(file.content_length or len(file.read()) for file in files)
+    # Reset file pointer if .read() was used
+    for file in files:
+        file.stream.seek(0)
+    
+    if current_usage + new_files_total > MAX_USER_STORAGE:
+        return jsonify({'error': 'Storage limit exceeded (Maximum 5 MB)'}), 400
+
     
     for file in files:
         if file.filename == '':
@@ -130,12 +143,11 @@ def delete_file(filename):
 @bp.route('/storage-info', methods=['GET'])
 @login_required
 def storage_info():
-    _, used_system, _ = shutil.disk_usage("/")
-    total, _, _ = shutil.disk_usage(current_app.config['UPLOAD_FOLDER'])
-    total -= used_system
+    MAX_USER_STORAGE = 5 * 1024 * 1024  # 5MB per user
     used = get_folder_size(get_user_upload_folder(current_user.username))
+    free = MAX_USER_STORAGE - used if used < MAX_USER_STORAGE else 0
     return jsonify({
-        'total': total - used_system,
+        'total': MAX_USER_STORAGE,
         'used': used,
-        'free': total - used
+        'free': free
     })
