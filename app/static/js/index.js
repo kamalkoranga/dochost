@@ -203,7 +203,7 @@ function downloadFile(path, event) {
 
 async function deleteItem(path, event) {
   event.stopPropagation();
-  if (!confirm("Are you sure you want to delete this item?")) return;
+  // if (!confirm("Are you sure you want to delete this item?")) return;
 
   try {
     const response = await fetch(`/delete/${path}`, {
