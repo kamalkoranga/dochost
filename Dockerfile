@@ -16,6 +16,6 @@ EXPOSE 5000
 
 LABEL org.opencontainers.image.source=https://github.com/kamalkoranga/dochost
 
-LABEL org.opencontainers.image.description="Added Dynamic QRCode for each subscription plan so that it looks real."
+LABEL org.opencontainers.image.description="Update UI and fixed some bugs"
 
 ENTRYPOINT ["/entrypoint.sh"]
