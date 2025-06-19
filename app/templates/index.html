@@ -11,6 +11,7 @@
 <div class="user-info">
   Welcome, {{ username }}! 
   <button class="logout-btn" onclick="window.location.href='{{ url_for('auth.logout') }}'">Logout</button>
+  <button class="subscription-btn" onclick="window.location.href='{{ url_for('main.subscription_test') }}'">Subscription</button>
 </div>
 
 <div id="storage-bar" style="margin: 20px 0"></div>
