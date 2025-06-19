@@ -16,6 +16,6 @@ EXPOSE 5000
 
 LABEL org.opencontainers.image.source=https://github.com/kamalkoranga/dochost
 
-LABEL org.opencontainers.image.description="Shifted to Gunicorn WSGI server for production."
+LABEL org.opencontainers.image.description="Implemented subscription model in which there are two plans for getting more cloud storage"
 
 ENTRYPOINT ["/entrypoint.sh"]
