@@ -7,6 +7,9 @@
   <div class="error">{{ error }}</div>
   {% endif %}
   <form method="POST" action="{{ url_for('auth.login') }}">
+      {% if request.args.get('next') %}
+        <input type="hidden" name="next" value="{{ request.args.get('next') }}">
+      {% endif %}
       <div class="form-group">
           <input type="text" id="username" name="username" placeholder="Username" required>
       </div>

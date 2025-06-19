@@ -28,6 +28,10 @@ def login():
             return render_template('login.html', error="Invalid username or password")
 
         login_user(user, remember=True)
+        next_page = request.form.get('next') or request.args.get('next')
+        # Only allow relative URLs for security
+        if next_page and next_page.startswith('/'):
+            return redirect(next_page)
         return redirect(url_for('main.index'))
 
     return render_template('login.html')

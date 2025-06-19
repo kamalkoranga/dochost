@@ -16,6 +16,6 @@ EXPOSE 5000
 
 LABEL org.opencontainers.image.source=https://github.com/kamalkoranga/dochost
 
-LABEL org.opencontainers.image.description="Update UI and fixed some bugs"
+LABEL org.opencontainers.image.description="Redirects next url after logged in"
 
 ENTRYPOINT ["/entrypoint.sh"]
