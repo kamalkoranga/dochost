@@ -323,7 +323,11 @@
         })
           .then(r => r.json())
           .then(data => {
-            document.getElementById('sub-result').innerText = data.message || (data.error ? data.error : "");
+            if (data.data.had_subscription) {
+              document.getElementById('sub-result').innerText = `Subscription extended! Extra storage: ${data.data.extra_storage_mb} MB until ${new Date(data.data.subscription_expires_at).toLocaleString()}`;
+            } else {
+              document.getElementById('sub-result').innerText = `Subscription successful! Extra storage: ${data.data.extra_storage_mb} MB until ${new Date(data.data.subscription_expires_at).toLocaleString()}`;
+            }
             getStorageInfo();
           });
       }

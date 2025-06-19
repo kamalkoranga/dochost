@@ -12,7 +12,7 @@ from app.utils import get_folder_size, get_user_upload_folder, create_user_folde
 @bp.before_app_request
 def before_request():
     if current_user.is_authenticated:
-        current_user.last_seen = datetime.now()
+        current_user.last_seen = datetime.now(timezone.utc)
         db.session.commit()
 
 @bp.route('/')
@@ -28,9 +28,14 @@ def upload_file():
     BASE_USER_STORAGE = 5 * 1024 * 1024  # 5MB
 
     # Check subscription expiry
-    now = datetime.now()
+    now = datetime.now(timezone.utc)
     extra_mb = 0
-    if current_user.subscription_expires_at and current_user.subscription_expires_at > now:
+    # Make subscription_expires_at timezone-aware before comparison
+    expires_at = current_user.subscription_expires_at
+    if expires_at is not None and expires_at.tzinfo is None:
+        expires_at = expires_at.replace(tzinfo=timezone.utc)
+
+    if expires_at and expires_at > now:
         extra_mb = getattr(current_user, "extra_storage_mb", 0) or 0
     MAX_USER_STORAGE = BASE_USER_STORAGE + (extra_mb * 1024 * 1024)
 
@@ -162,7 +167,7 @@ def subscribe():
         return jsonify({'error': 'No amount provided'}), 400
 
     amount = int(data['amount'])
-    now = datetime.now()
+    now = datetime.now(timezone.utc)
     duration = timedelta(minutes=1)  # 1 minute for testing
 
     # Determine new storage
@@ -173,30 +178,52 @@ def subscribe():
     else:
         return jsonify({'error': 'Invalid subscription amount'}), 400
 
+    # Ensure subscription_expires_at is timezone-aware before comparison
+    sub_exp = current_user.subscription_expires_at
+    if sub_exp is not None and sub_exp.tzinfo is None:
+        sub_exp = sub_exp.replace(tzinfo=timezone.utc)
+
     # If user already has a subscription
-    if current_user.subscription_expires_at and current_user.subscription_expires_at > now:
+    if sub_exp and sub_exp > now:
         current_user.extra_storage_mb += new_extra_mb
-        current_user.subscription_expires_at += duration
-        msg = f'Subscription extended! Extra storage: {current_user.extra_storage_mb} MB until {current_user.subscription_expires_at.strftime("%I:%M:%S %p, %d %B %Y")}'
+        current_user.subscription_expires_at = sub_exp + duration
+        # msg = f'Subscription extended! Extra storage: {current_user.extra_storage_mb} MB until {current_user.subscription_expires_at.strftime("%I:%M:%S %p, %d %B %Y")}'
+        data = {
+            'extra_storage_mb': current_user.extra_storage_mb,
+            'subscription_expires_at': current_user.subscription_expires_at,
+            'had_subscription': True
+        }
     else:
         # New subscription
         current_user.extra_storage_mb = new_extra_mb
         current_user.subscription_expires_at = now + duration
-        msg = f'Subscription successful. Extra storage: {new_extra_mb} MB until {current_user.subscription_expires_at.strftime("%I:%M:%S %p, %d %B %Y")}'
+        # msg = f'Subscription successful. Extra storage: {new_extra_mb} MB until {current_user.subscription_expires_at.strftime("%I:%M:%S %p, %d %B %Y")}'
+        data = {
+            'extra_storage_mb': new_extra_mb,
+            'subscription_expires_at': current_user.subscription_expires_at,
+            'had_subscription': False
+        }
 
     db.session.commit()
-    return jsonify({'message': msg})
+    return jsonify({'data': data})
 
 @bp.route('/storage-info', methods=['GET'])
 @login_required
 def storage_info():
     BASE_USER_STORAGE = 5 * 1024 * 1024  # 5MB per user
-    now = datetime.now()
+    now = datetime.now(timezone.utc)
     extra_mb = 0
     expires_at = None
-    if current_user.subscription_expires_at and current_user.subscription_expires_at > now:
-        extra_mb = getattr(current_user, "extra_storage_mb", 0) or 0
-        expires_at = current_user.subscription_expires_at
+
+    sub_exp = current_user.subscription_expires_at
+    # Ensure sub_exp is timezone-aware before comparison
+    if sub_exp is not None:
+        if sub_exp.tzinfo is None:
+            sub_exp = sub_exp.replace(tzinfo=timezone.utc)
+        if sub_exp > now:
+            extra_mb = getattr(current_user, "extra_storage_mb", 0) or 0
+            expires_at = sub_exp
+
     MAX_USER_STORAGE = BASE_USER_STORAGE + (extra_mb * 1024 * 1024)
     used = get_folder_size(get_user_upload_folder(current_user.username))
     free = MAX_USER_STORAGE - used if used < MAX_USER_STORAGE else 0
