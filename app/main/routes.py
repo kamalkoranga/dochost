@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from flask import render_template, jsonify, send_from_directory, request, \
     current_app
 from flask_login import current_user, login_required
@@ -7,13 +7,12 @@ from app import db
 import shutil
 from app.main import bp
 from app.utils import get_folder_size, get_user_upload_folder, create_user_folder
-from datetime import datetime, timedelta
 
 
 @bp.before_app_request
 def before_request():
     if current_user.is_authenticated:
-        current_user.last_seen = datetime.now(timezone.utc)
+        current_user.last_seen = datetime.now()
         db.session.commit()
 
 @bp.route('/')
@@ -29,7 +28,7 @@ def upload_file():
     BASE_USER_STORAGE = 5 * 1024 * 1024  # 5MB
 
     # Check subscription expiry
-    now = datetime.utcnow()
+    now = datetime.now()
     extra_mb = 0
     if current_user.subscription_expires_at and current_user.subscription_expires_at > now:
         extra_mb = getattr(current_user, "extra_storage_mb", 0) or 0
@@ -149,10 +148,10 @@ def delete_file(filename):
         return jsonify({'error': str(e)}), 500
 
 
-@bp.route('/subscription-test')
+@bp.route('/pricing')
 @login_required
-def subscription_test():
-    return render_template('subscription.html')
+def pricing():
+    return render_template('pricing.html')
 
 
 @bp.route('/subscribe', methods=['POST'])
@@ -163,7 +162,7 @@ def subscribe():
         return jsonify({'error': 'No amount provided'}), 400
 
     amount = int(data['amount'])
-    now = datetime.utcnow()
+    now = datetime.now()
     duration = timedelta(minutes=1)  # 1 minute for testing
 
     # Determine new storage
@@ -178,12 +177,12 @@ def subscribe():
     if current_user.subscription_expires_at and current_user.subscription_expires_at > now:
         current_user.extra_storage_mb += new_extra_mb
         current_user.subscription_expires_at += duration
-        msg = f'Subscription extended! Extra storage: {current_user.extra_storage_mb} MB until {current_user.subscription_expires_at} UTC'
+        msg = f'Subscription extended! Extra storage: {current_user.extra_storage_mb} MB until {current_user.subscription_expires_at.strftime("%I:%M:%S %p, %d %B %Y")}'
     else:
         # New subscription
         current_user.extra_storage_mb = new_extra_mb
         current_user.subscription_expires_at = now + duration
-        msg = f'Subscription successful. Extra storage: {new_extra_mb} MB until {current_user.subscription_expires_at} UTC'
+        msg = f'Subscription successful. Extra storage: {new_extra_mb} MB until {current_user.subscription_expires_at.strftime("%I:%M:%S %p, %d %B %Y")}'
 
     db.session.commit()
     return jsonify({'message': msg})
@@ -192,7 +191,7 @@ def subscribe():
 @login_required
 def storage_info():
     BASE_USER_STORAGE = 5 * 1024 * 1024  # 5MB per user
-    now = datetime.utcnow()
+    now = datetime.now()
     extra_mb = 0
     expires_at = None
     if current_user.subscription_expires_at and current_user.subscription_expires_at > now:
