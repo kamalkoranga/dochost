@@ -3,12 +3,14 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from app import db, login
 from sqlalchemy.orm import validates
 
+
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     password_hash = db.Column(db.String(256), nullable=False)
     folder_name = db.Column(db.String(128), unique=True, nullable=False)
     extra_storage_mb = db.Column(db.Integer, default=0, nullable=False)
+    subscription_expires_at = db.Column(db.DateTime, nullable=True)
 
     @validates('username')
     def set_folder_name(self, key, username):
