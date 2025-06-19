@@ -16,6 +16,6 @@ EXPOSE 5000
 
 LABEL org.opencontainers.image.source=https://github.com/kamalkoranga/dochost
 
-LABEL org.opencontainers.image.description="Allocated 5MB to each user for file uploads."
+LABEL org.opencontainers.image.description="Shifted to Gunicorn WSGI server for production."
 
 ENTRYPOINT ["/entrypoint.sh"]
