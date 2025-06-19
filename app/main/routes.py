@@ -7,6 +7,7 @@ from app import db
 import shutil
 from app.main import bp
 from app.utils import get_folder_size, get_user_upload_folder, create_user_folder
+from datetime import datetime, timedelta
 
 
 @bp.before_app_request
@@ -26,7 +27,12 @@ def index():
 def upload_file():
     USER_FOLDER = get_user_upload_folder(current_user.username)
     BASE_USER_STORAGE = 5 * 1024 * 1024  # 5MB
-    extra_mb = getattr(current_user, "extra_storage_mb", 0) or 0
+
+    # Check subscription expiry
+    now = datetime.utcnow()
+    extra_mb = 0
+    if current_user.subscription_expires_at and current_user.subscription_expires_at > now:
+        extra_mb = getattr(current_user, "extra_storage_mb", 0) or 0
     MAX_USER_STORAGE = BASE_USER_STORAGE + (extra_mb * 1024 * 1024)
 
     if 'files[]' not in request.files:
@@ -45,6 +51,8 @@ def upload_file():
         file.stream.seek(0)
     
     if current_usage + new_files_total > MAX_USER_STORAGE:
+        if extra_mb == 0:
+            return jsonify({'error': 'Storage limit exceeded. Please subscribe to upload more files.'}), 400
         return jsonify({'error': f'Storage limit exceeded (Maximum {MAX_USER_STORAGE / (1024 * 1024)} MB)'}), 400
 
     for file in files:
@@ -155,27 +163,47 @@ def subscribe():
         return jsonify({'error': 'No amount provided'}), 400
 
     amount = int(data['amount'])
+    now = datetime.utcnow()
+    duration = timedelta(minutes=1)  # 1 minute for testing
+
+    # Determine new storage
     if amount == 2:
-        current_user.extra_storage_mb += 5
+        new_extra_mb = 5
     elif amount == 4:
-        current_user.extra_storage_mb += 10
+        new_extra_mb = 10
     else:
         return jsonify({'error': 'Invalid subscription amount'}), 400
 
-    db.session.commit()
-    return jsonify({'message': f'Subscription successful. Extra storage: {current_user.extra_storage_mb} MB'})
+    # If user already has a subscription
+    if current_user.subscription_expires_at and current_user.subscription_expires_at > now:
+        current_user.extra_storage_mb += new_extra_mb
+        current_user.subscription_expires_at += duration
+        msg = f'Subscription extended! Extra storage: {current_user.extra_storage_mb} MB until {current_user.subscription_expires_at} UTC'
+    else:
+        # New subscription
+        current_user.extra_storage_mb = new_extra_mb
+        current_user.subscription_expires_at = now + duration
+        msg = f'Subscription successful. Extra storage: {new_extra_mb} MB until {current_user.subscription_expires_at} UTC'
 
+    db.session.commit()
+    return jsonify({'message': msg})
 
 @bp.route('/storage-info', methods=['GET'])
 @login_required
 def storage_info():
     BASE_USER_STORAGE = 5 * 1024 * 1024  # 5MB per user
-    extra_mb = getattr(current_user, "extra_storage_mb", 0) or 0
+    now = datetime.utcnow()
+    extra_mb = 0
+    expires_at = None
+    if current_user.subscription_expires_at and current_user.subscription_expires_at > now:
+        extra_mb = getattr(current_user, "extra_storage_mb", 0) or 0
+        expires_at = current_user.subscription_expires_at
     MAX_USER_STORAGE = BASE_USER_STORAGE + (extra_mb * 1024 * 1024)
     used = get_folder_size(get_user_upload_folder(current_user.username))
     free = MAX_USER_STORAGE - used if used < MAX_USER_STORAGE else 0
     return jsonify({
         'total': MAX_USER_STORAGE,
         'used': used,
-        'free': free
+        'free': free,
+        'subscription_expires_at': expires_at.isoformat() if expires_at else None
     })
