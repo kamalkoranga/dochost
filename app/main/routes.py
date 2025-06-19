@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from flask import render_template, jsonify, send_from_directory, request, \
     current_app
 from flask_login import current_user, login_required
@@ -12,7 +12,7 @@ from app.utils import get_folder_size, get_user_upload_folder, create_user_folde
 @bp.before_app_request
 def before_request():
     if current_user.is_authenticated:
-        current_user.last_seen = datetime.now(timezone.utc)
+        current_user.last_seen = datetime.now()
         db.session.commit()
 
 @bp.route('/')
@@ -25,7 +25,14 @@ def index():
 @login_required
 def upload_file():
     USER_FOLDER = get_user_upload_folder(current_user.username)
-    MAX_USER_STORAGE = 5 * 1024 * 1024  # 5MB
+    BASE_USER_STORAGE = 5 * 1024 * 1024  # 5MB
+
+    # Check subscription expiry
+    now = datetime.now()
+    extra_mb = 0
+    if current_user.subscription_expires_at and current_user.subscription_expires_at > now:
+        extra_mb = getattr(current_user, "extra_storage_mb", 0) or 0
+    MAX_USER_STORAGE = BASE_USER_STORAGE + (extra_mb * 1024 * 1024)
 
     if 'files[]' not in request.files:
         return jsonify({'error': 'No file part'}), 400
@@ -43,9 +50,10 @@ def upload_file():
         file.stream.seek(0)
     
     if current_usage + new_files_total > MAX_USER_STORAGE:
-        return jsonify({'error': 'Storage limit exceeded (Maximum 5 MB)'}), 400
+        if extra_mb == 0:
+            return jsonify({'error': 'Storage limit exceeded. Please subscribe to upload more files.'}), 400
+        return jsonify({'error': f'Storage limit exceeded (Maximum {MAX_USER_STORAGE / (1024 * 1024)} MB)'}), 400
 
-    
     for file in files:
         if file.filename == '':
             continue
@@ -140,14 +148,61 @@ def delete_file(filename):
         return jsonify({'error': str(e)}), 500
 
 
+@bp.route('/pricing')
+@login_required
+def pricing():
+    return render_template('pricing.html')
+
+
+@bp.route('/subscribe', methods=['POST'])
+@login_required
+def subscribe():
+    data = request.get_json()
+    if not data or 'amount' not in data:
+        return jsonify({'error': 'No amount provided'}), 400
+
+    amount = int(data['amount'])
+    now = datetime.now()
+    duration = timedelta(minutes=1)  # 1 minute for testing
+
+    # Determine new storage
+    if amount == 2:
+        new_extra_mb = 5
+    elif amount == 4:
+        new_extra_mb = 10
+    else:
+        return jsonify({'error': 'Invalid subscription amount'}), 400
+
+    # If user already has a subscription
+    if current_user.subscription_expires_at and current_user.subscription_expires_at > now:
+        current_user.extra_storage_mb += new_extra_mb
+        current_user.subscription_expires_at += duration
+        msg = f'Subscription extended! Extra storage: {current_user.extra_storage_mb} MB until {current_user.subscription_expires_at.strftime("%I:%M:%S %p, %d %B %Y")}'
+    else:
+        # New subscription
+        current_user.extra_storage_mb = new_extra_mb
+        current_user.subscription_expires_at = now + duration
+        msg = f'Subscription successful. Extra storage: {new_extra_mb} MB until {current_user.subscription_expires_at.strftime("%I:%M:%S %p, %d %B %Y")}'
+
+    db.session.commit()
+    return jsonify({'message': msg})
+
 @bp.route('/storage-info', methods=['GET'])
 @login_required
 def storage_info():
-    MAX_USER_STORAGE = 5 * 1024 * 1024  # 5MB per user
+    BASE_USER_STORAGE = 5 * 1024 * 1024  # 5MB per user
+    now = datetime.now()
+    extra_mb = 0
+    expires_at = None
+    if current_user.subscription_expires_at and current_user.subscription_expires_at > now:
+        extra_mb = getattr(current_user, "extra_storage_mb", 0) or 0
+        expires_at = current_user.subscription_expires_at
+    MAX_USER_STORAGE = BASE_USER_STORAGE + (extra_mb * 1024 * 1024)
     used = get_folder_size(get_user_upload_folder(current_user.username))
     free = MAX_USER_STORAGE - used if used < MAX_USER_STORAGE else 0
     return jsonify({
         'total': MAX_USER_STORAGE,
         'used': used,
-        'free': free
+        'free': free,
+        'subscription_expires_at': expires_at.isoformat() if expires_at else None
     })
