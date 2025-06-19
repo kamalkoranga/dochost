@@ -181,14 +181,14 @@ async function uploadFile() {
 
     const result = await response.json();
     showToast(result.message || "Files uploaded successfully!");
-    fileInput.value = "";
-    updateSelectedFilesList();
-    fetchFiles(currentPath);
-    loadStorageInfo();
   } catch (error) {
     showToast(`Upload failed: ${error.message}`, "error");
   } finally {
     // Reset UI
+    fileInput.value = "";
+    updateSelectedFilesList();
+    fetchFiles(currentPath);
+    loadStorageInfo();
     uploadBtn.disabled = false;
     btnText.style.display = "inline";
     btnSpinner.style.display = "none";
