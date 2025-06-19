@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Subscription Test</title>
+</head>
+<body>
+    <h2>Cloud Storage Subscription</h2>
+    <div>
+        <button onclick="subscribe(2)">Subscribe 2₹/month (+5MB)</button>
+        <button onclick="subscribe(4)">Subscribe 4₹/month (+10MB)</button>
+    </div>
+    <div id="sub-result" style="margin-top:1em;color:green;"></div>
+    <hr>
+    <button onclick="getStorageInfo()">Check Storage Info</button>
+    <div id="storage-info" style="margin-top:1em;"></div>
+    <script>
+        function subscribe(amount) {
+            fetch('/subscribe', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({amount: amount})
+            })
+            .then(r => r.json())
+            .then(data => {
+                document.getElementById('sub-result').innerText = JSON.stringify(data, null, 2);
+                getStorageInfo();
+            });
+        }
+        function getStorageInfo() {
+            fetch('/storage-info')
+            .then(r => r.json())
+            .then(data => {
+                document.getElementById('storage-info').innerText = 
+                    `Total: ${(data.total/1024/1024).toFixed(2)} MB\nUsed: ${(data.used/1024/1024).toFixed(2)} MB\nFree: ${(data.free/1024/1024).toFixed(2)} MB`;
+            });
+        }
+        // Auto-load storage info
+        getStorageInfo();
+    </script>
+</body>
+</html>

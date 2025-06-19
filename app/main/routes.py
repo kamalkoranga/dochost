@@ -25,7 +25,9 @@ def index():
 @login_required
 def upload_file():
     USER_FOLDER = get_user_upload_folder(current_user.username)
-    MAX_USER_STORAGE = 5 * 1024 * 1024  # 5MB
+    BASE_USER_STORAGE = 5 * 1024 * 1024  # 5MB
+    extra_mb = getattr(current_user, "extra_storage_mb", 0) or 0
+    MAX_USER_STORAGE = BASE_USER_STORAGE + (extra_mb * 1024 * 1024)
 
     if 'files[]' not in request.files:
         return jsonify({'error': 'No file part'}), 400
@@ -43,9 +45,8 @@ def upload_file():
         file.stream.seek(0)
     
     if current_usage + new_files_total > MAX_USER_STORAGE:
-        return jsonify({'error': 'Storage limit exceeded (Maximum 5 MB)'}), 400
+        return jsonify({'error': f'Storage limit exceeded (Maximum {MAX_USER_STORAGE / (1024 * 1024)} MB)'}), 400
 
-    
     for file in files:
         if file.filename == '':
             continue
@@ -140,10 +141,37 @@ def delete_file(filename):
         return jsonify({'error': str(e)}), 500
 
 
+@bp.route('/subscription-test')
+@login_required
+def subscription_test():
+    return render_template('subscription.html')
+
+
+@bp.route('/subscribe', methods=['POST'])
+@login_required
+def subscribe():
+    data = request.get_json()
+    if not data or 'amount' not in data:
+        return jsonify({'error': 'No amount provided'}), 400
+
+    amount = int(data['amount'])
+    if amount == 2:
+        current_user.extra_storage_mb += 5
+    elif amount == 4:
+        current_user.extra_storage_mb += 10
+    else:
+        return jsonify({'error': 'Invalid subscription amount'}), 400
+
+    db.session.commit()
+    return jsonify({'message': f'Subscription successful. Extra storage: {current_user.extra_storage_mb} MB'})
+
+
 @bp.route('/storage-info', methods=['GET'])
 @login_required
 def storage_info():
-    MAX_USER_STORAGE = 5 * 1024 * 1024  # 5MB per user
+    BASE_USER_STORAGE = 5 * 1024 * 1024  # 5MB per user
+    extra_mb = getattr(current_user, "extra_storage_mb", 0) or 0
+    MAX_USER_STORAGE = BASE_USER_STORAGE + (extra_mb * 1024 * 1024)
     used = get_folder_size(get_user_upload_folder(current_user.username))
     free = MAX_USER_STORAGE - used if used < MAX_USER_STORAGE else 0
     return jsonify({
