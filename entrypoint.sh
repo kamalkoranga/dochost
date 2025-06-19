@@ -28,4 +28,4 @@ echo "PostgreSQL is ready."
 flask db upgrade
 
 # Start the server
-exec flask run --host=0.0.0.0 --port=5000
+exec gunicorn -w 2 -k gthread -t 120 -b :5000 dochost:app --threads 4
