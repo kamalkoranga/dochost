@@ -9,13 +9,12 @@
 
 
 <div class="user-info">
-  Welcome, {{ username }}! 
-  <button class="logout-btn" onclick="window.location.href='{{ url_for('auth.logout') }}'">Logout</button>
-  |
+  <div>
+    Welcome, {{ username }}! 
+    <button class="logout-btn" onclick="window.location.href='{{ url_for('auth.logout') }}'">Logout</button>
+  </div>
   <button 
   class="upgrade-btn"
-  onmouseover="this.style.background='linear-gradient(90deg,#3182ce 0%,#319795 100%)'; this.style.boxShadow='0 4px 16px rgba(56,178,172,0.15)';"
-  onmouseout="this.style.background='linear-gradient(90deg, #4299e1 0%, #38b2ac 100%)'; this.style.boxShadow='0 2px 8px rgba(66,153,225,0.10)';"
   onclick="window.location.href='{{ url_for('main.pricing') }}'">
   ⚡ Upgrade
 </button>
