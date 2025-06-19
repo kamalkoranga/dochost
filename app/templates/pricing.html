@@ -13,6 +13,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='img/favicon-32x32.png') }}" />
   <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='img/favicon-16x16.png') }}" />
   <link rel="manifest" href="{{ url_for('static', filename='site.webmanifest') }}" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <style>
     * {
       box-sizing: border-box;
@@ -322,7 +323,7 @@
         <li id="basic" class="price bottom-bar">₹2</li>
         <li class="bottom-bar">+5 MB Storage</li>
         <li class="bottom-bar">Valid for 1 minute</li>
-        <li><button class="btn" id="buy-basic" onclick="subscribe(2)">Buy</button></li>
+        <li><button class="btn" id="buy-basic">Buy</button></li>
       </ul>
     </div>
     <!-- 4₹ Plan Card -->
@@ -332,7 +333,7 @@
         <li id="professional" class="price bottom-bar">₹4</li>
         <li class="bottom-bar">+10 MB Storage</li>
         <li class="bottom-bar">Valid for 1 minute</li>
-        <li><button class="btn" id="buy-professional" onclick="subscribe(4)">Buy</button></li>
+        <li><button class="btn" id="buy-professional">Buy</button></li>
       </ul>
     </div>
   </div>
@@ -343,28 +344,41 @@
     <a class="btn link" href="{{ url_for('main.index') }}" style="margin-top:10px; background:hsl(237, 63%, 64%);">Go to
       Dashboard</a>
   </div>
+  <!-- Add this modal HTML just before the closing </body> tag -->
+  <div id="payment-modal"
+    style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.35);z-index:1000;justify-content:center;align-items:center;">
+    <div
+      style="background:#fff;padding:2em 2em 1.5em 2em;border-radius:10px;box-shadow:0 2px 16px rgba(0,0,0,0.18);display:flex;flex-direction:column;align-items:center;min-width:260px;max-width:90vw;">
+      <h2 style="margin-bottom:1em;">Scan to Pay</h2>
+      <div id="qrcode" style="margin-bottom: 1rem;"></div>
+      <button id="simulate-pay-btn" class="btn" style="margin-bottom:0.5em;">Simulate Payment</button>
+      <button onclick="closeModal()" class="btn" style="background:#eee;color:#333;">Cancel</button>
+    </div>
+  </div>
+
   <script>
-    function subscribe(amount) {
-      fetch('/subscribe', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount: amount })
-      })
-        .then(r => r.json())
-        .then(data => {
-          document.getElementById('sub-result').innerText = data.message || (data.error ? data.error : "");
-          getStorageInfo();
-        });
-    }
-    function getStorageInfo() {
-      fetch('/storage-info')
-        .then(r => r.json())
-        .then(data => {
-          // Storage bar
-          let usedMB = (data.used / 1024 / 1024);
-          let totalMB = (data.total / 1024 / 1024);
-          let percent = Math.min(100, (usedMB / totalMB) * 100).toFixed(1);
-          let bar = `
+    document.addEventListener('DOMContentLoaded', function () {
+      function subscribe(amount) {
+        fetch('/subscribe', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ amount: amount })
+        })
+          .then(r => r.json())
+          .then(data => {
+            document.getElementById('sub-result').innerText = data.message || (data.error ? data.error : "");
+            getStorageInfo();
+          });
+      }
+      function getStorageInfo() {
+        fetch('/storage-info')
+          .then(r => r.json())
+          .then(data => {
+            // Storage bar
+            let usedMB = (data.used / 1024 / 1024);
+            let totalMB = (data.total / 1024 / 1024);
+            let percent = Math.min(100, (usedMB / totalMB) * 100).toFixed(1);
+            let bar = `
                     <div class="storage-bar-bg" style="width:100%;height:18px;background:#e2e8f0;border-radius:9px;margin:10px 0 6px 0;overflow:hidden;">
                         <div class="storage-bar-fill" style="height:100%;background:hsl(237, 63%, 64%);border-radius:9px 0 0 9px;transition:width 0.4s;width:${percent}%"></div>
                     </div>
@@ -378,33 +392,61 @@
                         ${data.subscription_expires_at ? `` : '<br><span style="color:#e53e3e;">No active subscription</span>'}
                     </div>
                 `;
-          document.getElementById('storage-bar-visual').innerHTML = bar;
-          document.getElementById('storage-info').innerText = "";
+            document.getElementById('storage-bar-visual').innerHTML = bar;
+            document.getElementById('storage-info').innerText = "";
 
-          // Update Current Plan Card
-          let planList = document.getElementById('current-plan-list');
-          let isSubscribed = !!data.subscription_expires_at;
-          let planName = "Free";
-          let storage = "5 MB Storage";
-          let expiry = "No Expiry";
-          let btn = `<button class="btn active-btn" disabled>Current</button>`;
-          if (isSubscribed) {
-            // Show as "Subscribed"
-            planName = "Subscribed";
-            storage = (data.total / 1024 / 1024).toFixed(0) + " MB Storage";
-            expiry = `Expires: ${new Date(data.subscription_expires_at).toLocaleString()}`;
-          }
-          planList.innerHTML = `
+            // Update Current Plan Card
+            let planList = document.getElementById('current-plan-list');
+            let isSubscribed = !!data.subscription_expires_at;
+            let planName = "Free";
+            let storage = "5 MB Storage";
+            let expiry = "No Expiry";
+            let btn = `<button class="btn active-btn" disabled>Current</button>`;
+            if (isSubscribed) {
+              // Show as "Subscribed"
+              planName = "Subscribed";
+              storage = (data.total / 1024 / 1024).toFixed(0) + " MB Storage";
+              expiry = `Expires: ${new Date(data.subscription_expires_at).toLocaleString()}`;
+            }
+            planList.innerHTML = `
                     <li class="pack">Current Plan</li>
                     <li id="current-plan" class="price bottom-bar">${planName}</li>
                     <li class="bottom-bar">${storage}</li>
                     <li class="bottom-bar">${expiry}</li>
                     <li>${btn}</li>
                 `;
+          });
+      }
+      // Auto-load storage info
+      getStorageInfo();
+
+      let selectedAmount = 0;
+
+      function showModal(amount) {
+        selectedAmount = amount;
+        const upiLink = `upi://pay?pa=kamalkoranga13@oksbi&pn=Kamal%20Koranga&am=${amount}&cu=INR`;
+        const qrcodeContainer = document.getElementById('qrcode');
+        qrcodeContainer.innerHTML = '';
+        new QRCode(qrcodeContainer, {
+          text: upiLink,
+          width: 200,
+          height: 200
         });
-    }
-    // Auto-load storage info
-    getStorageInfo();
+        document.getElementById('payment-modal').style.display = 'flex';
+      }
+
+      window.closeModal = function () {
+        document.getElementById('payment-modal').style.display = 'none';
+      }
+
+      document.getElementById('simulate-pay-btn').onclick = function () {
+        closeModal();
+        subscribe(selectedAmount);
+      };
+
+      document.getElementById('buy-basic').onclick = function () { showModal(2); };
+      document.getElementById('buy-professional').onclick = function () { showModal(4); };
+    });
   </script>
 </body>
 

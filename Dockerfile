@@ -16,6 +16,6 @@ EXPOSE 5000
 
 LABEL org.opencontainers.image.source=https://github.com/kamalkoranga/dochost
 
-LABEL org.opencontainers.image.description="Implemented subscription model in which there are two plans for getting more cloud storage"
+LABEL org.opencontainers.image.description="Added Dynamic QRCode for each subscription plan so that it looks real."
 
 ENTRYPOINT ["/entrypoint.sh"]
