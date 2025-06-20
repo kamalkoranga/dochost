@@ -16,6 +16,6 @@ EXPOSE 5000
 
 LABEL org.opencontainers.image.source=https://github.com/kamalkoranga/dochost
 
-LABEL org.opencontainers.image.description="Add email notification for new user registration and configure Flask-Mail"
+LABEL org.opencontainers.image.description="Add error handling blueprints and templates for 404 and 500 errors"
 
 ENTRYPOINT ["/entrypoint.sh"]
