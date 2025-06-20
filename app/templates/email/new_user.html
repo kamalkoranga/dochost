@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>[DocHost] New User Registration</title>
+    <style>
+      body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f4f4f7;
+        color: #333;
+        margin: 0;
+        padding: 0;
+      }
+      .container {
+        max-width: 600px;
+        margin: 40px auto;
+        background-color: #ffffff;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        padding: 30px;
+      }
+      h2 {
+        color: #2d3748;
+      }
+      .footer {
+        font-size: 12px;
+        color: #888;
+        margin-top: 40px;
+        text-align: center;
+      }
+      .user-info {
+        background: #f0f0f0;
+        padding: 15px;
+        border-radius: 6px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h2>[DocHost] New User Registration</h2>
+      <p>Hello {{ admin }},</p>
+      <p>A new user has just registered on the DocHost. Here are the details:</p>
+
+      <div class="user-info">
+        <p><strong>Username:</strong> {{ user.username }}</p>
+        <p><strong>Registration Date:</strong> {{ registration_date }}</p>
+        <p><strong>IP Address:</strong> {{ ip_address }}</p>
+      </div>
+
+      <p>Please review or welcome them accordingly.</p>
+
+      <p>Best regards,<br />DocHost System</p>
+
+      <div class="footer">
+        © 2025 DocHost. Admin notification system.
+      </div>
+    </div>
+  </body>
+</html>
+
