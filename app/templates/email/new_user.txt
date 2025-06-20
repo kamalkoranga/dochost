@@ -1,0 +1,16 @@
+[DocHost] New User Registration
+
+Hello {{ admin }},
+
+A new user has just registered on DocHost. Here are the details:
+
+Username: {{ user.username }}
+Registration Date: {{ registration_date }}
+IP Address: {{ ip_address }}
+
+Please review or welcome them accordingly.
+
+Best regards,  
+DocHost System
+
+© 2025 DocHost. Admin notification system.
