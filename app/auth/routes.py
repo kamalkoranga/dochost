@@ -8,7 +8,10 @@ from app import db
 from app.auth import bp
 from app.models import User
 from app.utils import create_user_folder
+from app.email import send_email
 import os
+from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
 
 
 @bp.route('/login', methods=['GET', 'POST'])
@@ -53,6 +56,11 @@ def register():
         username = request.form.get('username')
         password = request.form.get('password')
 
+        if request.headers.get('X-Forwarded-For'):
+            ip = request.headers['X-Forwarded-For'].split(',')[0]
+        else:
+            ip = request.remote_addr
+
         user: User = User.query.filter_by(username=username).first()
         if user:
             return render_template('register.html', error="Username already exists")
@@ -62,6 +70,21 @@ def register():
         new_user.set_password(password)
         db.session.add(new_user)
         db.session.commit()
+
+
+        now = datetime.now(timezone.utc).isoformat()
+        utc_time = datetime.fromisoformat(now)
+        user_timezone = ZoneInfo("Asia/Kolkata")
+        local_time = utc_time.astimezone(user_timezone)
+        formatted_time = local_time.strftime("%Y-%m-%d %I:%M %p %Z")
+
+        send_email(
+            '[DocHost] New User Registration',
+            sender=current_app.config['ADMINS'][0],
+            recipients=[current_app.config['ADMINS'][0]],
+            text_body=render_template('email/new_user.txt', user=new_user, admin="KLKA", ip_address=ip, registration_date=formatted_time),
+            html_body=render_template('email/new_user.html', user=new_user, admin="KLKA", ip_address=ip, registration_date=formatted_time),
+        )
 
         folder_path = os.path.join(current_app.config['UPLOAD_FOLDER'], new_user.folder_name)
         create_user_folder(folder_path)
