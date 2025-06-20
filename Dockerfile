@@ -16,6 +16,6 @@ EXPOSE 5000
 
 LABEL org.opencontainers.image.source=https://github.com/kamalkoranga/dochost
 
-LABEL org.opencontainers.image.description="Changed Local Timezone to UTC"
+LABEL org.opencontainers.image.description="Add email notification for new user registration and configure Flask-Mail"
 
 ENTRYPOINT ["/entrypoint.sh"]
